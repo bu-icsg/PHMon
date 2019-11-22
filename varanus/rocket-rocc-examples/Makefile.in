@@ -1,0 +1,27 @@
+prefix		:= @prefix@
+abs_top_srcdir	:= @abs_top_srcdir@
+XLEN            := @XLEN@
+RISCVTOOLS      := @RISCVTOOLS@
+ROCC = examples
+
+.PHONY: all bareMetal clean pk
+all: bareMetal pk
+
+vars = \
+	abs_top_srcdir=$(abs_top_srcdir) \
+	XLEN=$(XLEN) \
+	PREFIX=$(ROCC)-$@ \
+	src_dir=$(abs_top_srcdir)/$@ \
+	RISCVTOOLS=$(RISCVTOOLS)
+
+bareMetal:
+	mkdir -p $@
+	$(MAKE) -C $@ -f $(abs_top_srcdir)/$@/Makefile $(vars)
+
+pk:
+	mkdir -p $@
+	$(MAKE) -C $@ -f $(abs_top_srcdir)/$@/Makefile $(vars)
+
+clean:
+	$(MAKE) -C pk -f $(abs_top_srcdir)/pk/Makefile abs_top_srcdir=$(abs_top_srcdir) PREFIX=$(ROCC)-pk clean
+	$(MAKE) -C bareMetal -f $(abs_top_srcdir)/bareMetal/Makefile abs_top_srcdir=$(abs_top_srcdir) PREFIX=$(ROCC)-bareMetal clean

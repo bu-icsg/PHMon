@@ -1,0 +1,42 @@
+diff --git a/machine/encoding.h b/machine/encoding.h
+index 1463801..2f238cf 100644
+--- a/machine/encoding.h
++++ b/machine/encoding.h
+@@ -101,6 +101,9 @@
+ #define MIP_SEIP            (1 << IRQ_S_EXT)
+ #define MIP_HEIP            (1 << IRQ_H_EXT)
+ #define MIP_MEIP            (1 << IRQ_M_EXT)
++/* PHMon: begin */
++#define MIP_MCIP            (1 << IRQ_COP)
++/* PHMon: end */
+ 
+ #define SIP_SSIP MIP_SSIP
+ #define SIP_STIP MIP_STIP
+diff --git a/machine/minit.c b/machine/minit.c
+index 0fb5f21..5ae1248 100644
+--- a/machine/minit.c
++++ b/machine/minit.c
+@@ -19,6 +19,11 @@ static void mstatus_init()
+   // Enable FPU
+   write_csr(mstatus, MSTATUS_FS);
+ 
++  /* PHMon: begin */
++  // Enable custom instructions
++  set_csr(mstatus, (MSTATUS_XS & (MSTATUS_XS >> 1)));
++  /* PHMon: end */
++
+   // Enable user/supervisor use of perf counters
+   write_csr(scounteren, -1);
+   write_csr(mcounteren, -1);
+@@ -33,7 +38,10 @@ static void mstatus_init()
+ // send S-mode interrupts and most exceptions straight to S-mode
+ static void delegate_traps()
+ {
+-  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
++  /* PHMon: begin */
++  //uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
++  uintptr_t interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP | MIP_MCIP;
++  /* PHMon: end */
+   uintptr_t exceptions =
+     (1U << CAUSE_MISALIGNED_FETCH) |
+     (1U << CAUSE_FETCH_PAGE_FAULT) |
