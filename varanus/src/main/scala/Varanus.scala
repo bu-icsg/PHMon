@@ -24,4 +24,4 @@ class CommitLog(implicit val p: Parameters)
                              //compressed or not
   val interrupt_replay = Bool() // Replay interrupt request to address
                                 //interrupt drop issue
-}}
+}

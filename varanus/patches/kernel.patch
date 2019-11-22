@@ -150,7 +150,7 @@ index 7eb8d21..b7e12e4 100644
  		goto out;
  
 +    /* PHMon: begin */
-+    if (!current->monitor_init & ((strcmp(current->comm, "ls") == 0) || (strcmp(current->comm, "cat") == 0) || (strcmp(current->comm, "vuln1") == 0) || (strcmp(current->comm, "vuln3") == 0) || (strcmp(current->comm, "ndisasm") == 0 || strcmp(current->comm, "mcf.rv") == 0) || strcmp(current->comm, "debug.rv") == 0)))) {
++    if (!current->monitor_init & ((strcmp(current->comm, "ls") == 0) || (strcmp(current->comm, "cat") == 0) || (strcmp(current->comm, "vuln1") == 0) || (strcmp(current->comm, "vuln3") == 0) || (strcmp(current->comm, "ndisasm") == 0 || strcmp(current->comm, "mcf.rv") == 0) || strcmp(current->comm, "debug.rv") == 0)) {
 +      current->monitor_init = true;
 +      current->monitor_enable = true;
 +      current->maintain_state = false;
