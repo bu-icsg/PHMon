@@ -4,59 +4,30 @@ In this document, we provide a guideline for running the use cases of our Progra
 Monitor (PHMon) [1]. We run our experiments on the Xilinx Zynq Zedboard FPGA and use a modified Linux
 kernel 4.15 to provide the support for our hardware.
 
-## Accessing the experiment environment
-To simplify the process of testing our use cases, we provide you with access to our FPGA
-boards. We have already created a guest account on one of our machines and provided you the
-private ssh key (please refer to the “optional bidding instructions” in the submission
-website). You can ssh to our machine after configuring the private ssh key:
+Please refer to the code branch of this repository to find our source code and patches.
 
-```  
-  $ ssh phmon@icsg-04.bu.edu
-```
-
-You have access to two of our FPGAs available at /dev/ttyACM0 and /dev/ttyACM1. For simplicity, in
-the rest of this document we call the FPGA connected to /dev/ttyACM0 as ACM0 and the one connected
-to /dev/ttyACM1 as ACM1. We suggest you to use screen for connecting to these two FPGAs (we have
-provided you screen access to these two nodes). However, if you want to do ssh or scp to ACM0 and
-ACM1, their ip addresses are 192.168.1.30 and 192.168.1.31, respectively. The username and
-password of the FPGAs are both root.
-We have already configured ACM0 and ACM1 with necessary files to run the baseline and PHMon
-experiments, respectively. To access the experiment environment of the baseline, connect to ACM0
-using screen:
+## The experiment environment
+In the rest of this document, we assume you have access to a Zedboard FPGA.
+We suggest you to use screen for connecting to your FPGA board, rather than ssh, e.g.:
 
 ```
   $ screen -S ACM0 /dev/ttyACM0 115200
 ```
 
 Please make sure to use 115200 as the baud rate in the screen command. After connecting to ACM0
-FPGA, you have access to the Processing System (PS) side of our zedboard. If you run ls here, you
-will see all the required files to configure the Programmable Logic (PL) side of the zedboard with
-a baseline Rocketchip processor and to boot up the Linux kernel.
-Similarly, you can connect to ACM1, the experiment environment for PHMon:
+FPGA, you have access to the Processing System (PS) side of your zedboard. We provide the required
+files to configure the Programmable Logic (PL) side of the zedboard with a baseline Rocketchip
+processor and to boot up the Linux kernel.
 
-```
-  $ screen -S ACM1 /dev/ttyACM1 115200
-```
+You can find the necessary files and scripts to configure the FPGA, boot up the Linux kernel,
+and run the baseline and PHMon experiments in the baseline and PHMon folders, respectively.
 
-Here, you have all the required files to configure the PL side of the zedboard with a Rocket
-processor integrated with PHMon and to run the Linux kernel.
-For more information about useful screen commands, please refer to the screen man page
-(https://linux.die.net/man/1/screen). We suggest you to detatch (ctrl a + d) from the screen
-session when you do not run the experiments. To reattach to the screen session use the following
-command:
+We suggest you to detatch (ctrl a + d) from the screen session when you do not run the experiments
+(specially for the AFL use case). To reattach to the screen session use the following command:
 
 ```
   $ screen -rd -S ACM0
-  $ screen -rd -S ACM1
 ```
-
-As mentioned before, we provide the necessary files and scripts to configure the FPGA, boot up the
-Linux kernel, and run the experiments. However, if you accidentally remove these files, you can
-get them from this repository and scp them to the FPGA. The PHMon files and baseline files are in
-the PHMon and baseline folders of this repository, respectively. Additionally, if the FPGA becomes
-unresponsive, you can reboot it using the reboot command. Please note that after a reboot, you
-need to remove all the default files on the PS side of the FPGA and replace them with the files
-provided in this repository.
 
 For each use case, we provide a script to boot up Linux. Because of our FPGA limitations, it takes
 about 2 minutes for the Linux to boot up (please be patient). After you are done with one set of
@@ -64,6 +35,10 @@ experiments, the easiest way to exit the Linux environment is just by terminatin
 using ctrl+c.
 
 ## Running the experiments
+For running the experiments, you need to make sure that you have the rocketchip_wrapper.bit.bin, fesvr-zynq,
+and the bbl as well as the script for the target use case (e.g., bbl_afl and afl.sh) on the PS side of the 
+zedboard.
+
 
 ### Shadow Stack
 For the shadow stack use case, we provide a benign benchmark (mcf from SPEC2006 benchmark suite)
