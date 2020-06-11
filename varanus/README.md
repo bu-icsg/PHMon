@@ -24,12 +24,12 @@ riscv-linux: fe92d7905c6ea0ebeabeb725b8040754ede7c220
 Then, you can clone PHMon repository.
 ``` bash
 cd rocket-chop
-export ROCKETCHIP_DIR = `pwd`
+export ROCKETCHIP_DIR=`pwd`
 git clone git@github.com:bu-icsg/PHMon.git
 cd PHMon
-git checkout --track origin/Code
+git checkout --track origin/code
 cd varanus
-Export PHMon=`pwd`
+export PHMon=`pwd`
 git submodule update --init --recursive
 cd ../..
 git apply $PHMon/patches/rocket.patch
