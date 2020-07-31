@@ -1,0 +1,14 @@
+diff --git a/common/src/main/scala/Configs.scala b/common/src/main/scala/Configs.scala
+index b842f67..829c0df 100644
+--- a/common/src/main/scala/Configs.scala
++++ b/common/src/main/scala/Configs.scala
+@@ -57,6 +57,9 @@ class DefaultSmallConfig extends Config(
+ class ZynqConfig extends Config(new WithZynqAdapter ++ new DefaultConfig)
+ class ZynqMediumConfig extends Config(new WithZynqAdapter ++ new DefaultMediumConfig)
+ class ZynqSmallConfig extends Config(new WithZynqAdapter ++ new DefaultSmallConfig)
++/* PHMon: begin */
++class ZynqKomodoConfig extends Config(new WithoutTLMonitors ++ new WithZynqAdapter ++ new WithBootROM ++ new freechips.rocketchip.system.KomodoBaseConfig ++ new freechips.rocketchip.system.DefaultConfig)
++/* PHMon: end */
+ 
+ class ZynqFPGAConfig extends Config(new WithoutTLMonitors ++ new ZynqConfig)
+ class ZynqMediumFPGAConfig extends Config(new WithoutTLMonitors ++ new ZynqMediumConfig)

@@ -1,0 +1,235 @@
+diff --git a/src/main/scala/rocket/CSR.scala b/src/main/scala/rocket/CSR.scala
+index 591e054..a1a46ee 100644
+--- a/src/main/scala/rocket/CSR.scala
++++ b/src/main/scala/rocket/CSR.scala
+@@ -217,6 +217,9 @@ class CSRFile(perfEventSets: EventSets = new EventSets(Seq()))(implicit p: Param
+   val reset_mstatus = Wire(init=new MStatus().fromBits(0))
+   reset_mstatus.mpp := PRV.M
+   reset_mstatus.prv := PRV.M
++  /* PHMon: begin */
++  reset_mstatus.sum := Bool(true)
++  /* PHMon: end */
+   val reg_mstatus = Reg(init=reset_mstatus)
+ 
+   val new_prv = Wire(init = reg_mstatus.prv)
+@@ -417,7 +420,9 @@ class CSRFile(perfEventSets: EventSets = new EventSets(Seq()))(implicit p: Param
+     read_sstatus.uxl := io.status.uxl
+     read_sstatus.sd_rv32 := io.status.sd_rv32
+     read_sstatus.mxr := io.status.mxr
+-    read_sstatus.sum := io.status.sum
++    /* PHMon: begin */
++    read_sstatus.sum := Bool(true)
++    /* PHMon: end */
+     read_sstatus.xs := io.status.xs
+     read_sstatus.fs := io.status.fs
+     read_sstatus.spp := io.status.spp
+@@ -624,7 +629,9 @@ class CSRFile(perfEventSets: EventSets = new EventSets(Seq()))(implicit p: Param
+         reg_mstatus.mpp := trimPrivilege(new_mstatus.mpp)
+         if (usingVM) {
+           reg_mstatus.mxr := new_mstatus.mxr
+-          reg_mstatus.sum := new_mstatus.sum
++          /* PHMon: begin */
++          reg_mstatus.sum := Bool(true)
++          /* PHMon: end */
+           reg_mstatus.spp := new_mstatus.spp
+           reg_mstatus.spie := new_mstatus.spie
+           reg_mstatus.sie := new_mstatus.sie
+@@ -699,7 +706,9 @@ class CSRFile(perfEventSets: EventSets = new EventSets(Seq()))(implicit p: Param
+         reg_mstatus.spie := new_sstatus.spie
+         reg_mstatus.spp := new_sstatus.spp
+         reg_mstatus.mxr := new_sstatus.mxr
+-        reg_mstatus.sum := new_sstatus.sum
++        /* PHMon: begin */
++        reg_mstatus.sum := Bool(true)
++        /* PHMon: end */
+         reg_mstatus.fs := Fill(2, new_sstatus.fs.orR) // even without an FPU
+         if (usingRoCC) reg_mstatus.xs := Fill(2, new_sstatus.xs.orR)
+       }
+diff --git a/src/main/scala/rocket/HellaCache.scala b/src/main/scala/rocket/HellaCache.scala
+index fd83763..9f6f6e4 100644
+--- a/src/main/scala/rocket/HellaCache.scala
++++ b/src/main/scala/rocket/HellaCache.scala
+@@ -103,6 +103,9 @@ trait HasCoreData extends HasCoreParameters {
+ 
+ class HellaCacheReqInternal(implicit p: Parameters) extends CoreBundle()(p) with HasCoreMemOp {
+   val phys = Bool()
++  /* PHMon: begin */
++  val valid_req = Bool()
++  /* PHMon: end */
+ }
+ 
+ class HellaCacheReq(implicit p: Parameters) extends HellaCacheReqInternal()(p) with HasCoreData
+@@ -115,6 +118,9 @@ class HellaCacheResp(implicit p: Parameters) extends CoreBundle()(p)
+   val data_word_bypass = Bits(width = coreDataBits)
+   val data_raw = Bits(width = coreDataBits)
+   val store_data = Bits(width = coreDataBits)
++  /* PHMon: begin */
++  val s2_xcpt_else = Bool()
++  /* PHMon: end */
+ }
+ 
+ class AlignmentExceptions extends Bundle {
+@@ -152,6 +158,9 @@ class HellaCacheIO(implicit p: Parameters) extends CoreBundle()(p) {
+   val invalidate_lr = Bool(OUTPUT)
+   val ordered = Bool(INPUT)
+   val perf = new HellaCachePerfEvents().asInput
++  /* PHMon: begin */
++  val assertion = Bool(INPUT)
++   /* PHMon: end */
+ }
+ 
+ /** Base classes for Diplomatic TL2 HellaCaches */
+diff --git a/src/main/scala/rocket/HellaCacheArbiter.scala b/src/main/scala/rocket/HellaCacheArbiter.scala
+index ec3acef..69fa183 100644
+--- a/src/main/scala/rocket/HellaCacheArbiter.scala
++++ b/src/main/scala/rocket/HellaCacheArbiter.scala
+@@ -59,6 +59,9 @@ class HellaCacheArbiter(n: Int)(implicit p: Parameters) extends Module
+       io.requestor(i).s2_nack := io.mem.s2_nack && s2_id === UInt(i)
+       resp.bits := io.mem.resp.bits
+       resp.bits.tag := io.mem.resp.bits.tag >> log2Up(n)
++      /* PHMon: begin */
++      resp.bits.s2_xcpt_else := (io.mem.s2_xcpt.ae.st || io.mem.s2_xcpt.ae.ld) && s2_id =/= UInt(1)
++      /* PHMon: end */
+ 
+       io.requestor(i).replay_next := io.mem.replay_next
+     }
+diff --git a/src/main/scala/rocket/RocketCore.scala b/src/main/scala/rocket/RocketCore.scala
+index 460e25f..b01657b 100644
+--- a/src/main/scala/rocket/RocketCore.scala
++++ b/src/main/scala/rocket/RocketCore.scala
+@@ -171,6 +171,14 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p)
+   val take_pc_mem_wb = take_pc_wb || take_pc_mem
+   val take_pc = take_pc_mem_wb
+ 
++  /* PHMon: begin */
++  val intr_dec = Reg(Bool())
++  val intr_ex = Reg(Bool())
++  val intr_mem = Reg(Bool())
++  val intr_wb = Reg(Bool())
++  val intr_replay = Reg(Bool())
++  /* PHMon: end */
++
+   // decode stage
+   val ibuf = Module(new IBuf)
+   val id_expanded_inst = ibuf.io.inst.map(_.bits.inst)
+@@ -307,6 +315,10 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p)
+   ex_reg_replay := !take_pc && ibuf.io.inst(0).valid && ibuf.io.inst(0).bits.replay
+   ex_reg_xcpt := !ctrl_killd && id_xcpt
+   ex_reg_xcpt_interrupt := !take_pc && ibuf.io.inst(0).valid && csr.io.interrupt
++  /* PHMon: begin */
++  intr_dec := csr.io.interrupt && io.rocc.interrupt
++  intr_ex := ex_reg_xcpt_interrupt && intr_dec
++  /* PHMon: end */
+ 
+   when (!ctrl_killd) {
+     ex_ctrl := id_ctrl
+@@ -399,6 +411,9 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p)
+   mem_reg_replay := !take_pc_mem_wb && replay_ex
+   mem_reg_xcpt := !ctrl_killx && ex_xcpt
+   mem_reg_xcpt_interrupt := !take_pc_mem_wb && ex_reg_xcpt_interrupt
++  /* PHMon: begin */
++  intr_mem := mem_reg_xcpt_interrupt && intr_ex
++  /* PGMon: end */
+ 
+   // on pipeline flushes, cause mem_npc to hold the sequential npc, which
+   // will drive the W-stage npc mux
+@@ -474,6 +489,10 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p)
+     wb_reg_raw_inst := mem_reg_raw_inst
+     wb_reg_pc := mem_reg_pc
+   }
++  /* PHMon: begin */
++  intr_wb := wb_reg_xcpt && intr_mem
++  intr_replay := (intr_dec && !ex_reg_xcpt_interrupt) || (intr_ex && !mem_reg_xcpt_interrupt) || (intr_mem && !wb_reg_xcpt)
++  /* PHMon: end */
+ 
+   val (wb_xcpt, wb_cause) = checkExceptions(List(
+     (wb_reg_xcpt,  wb_reg_cause),
+@@ -688,12 +707,26 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p)
+   io.dmem.s1_kill := killm_common || mem_ldst_xcpt
+ 
+   io.rocc.cmd.valid := wb_reg_valid && wb_ctrl.rocc && !replay_wb_common
+-  io.rocc.exception := wb_xcpt && csr.io.status.xs.orR
++  /* PHMon: begin */
++  io.rocc.exception := (wb_xcpt || RegNext(wb_reg_xcpt)) && csr.io.status.xs.orR
++  /* PHMon: end */
+   io.rocc.cmd.bits.status := csr.io.status
+   io.rocc.cmd.bits.inst := new RoCCInstruction().fromBits(wb_reg_inst)
+   io.rocc.cmd.bits.rs1 := wb_reg_wdata
+   io.rocc.cmd.bits.rs2 := wb_reg_rs2
+ 
++  /* PHMon: begin */
++  io.rocc.commitLog.valid := wb_valid
++  io.rocc.commitLog.bits.pc_src := wb_reg_pc
++  io.rocc.commitLog.bits.pc_dst := RegNext(mem_npc)
++  io.rocc.commitLog.bits.inst := wb_reg_inst
++  io.rocc.commitLog.bits.addr := io.dmem.req.bits.addr
++  io.rocc.commitLog.bits.data := rf_wdata
++  io.rocc.commitLog.bits.is_compressed := RegNext(RegNext(RegNext(ibuf.io.inst(0).bits.rvc)))
++  io.rocc.commitLog.bits.priv := csr.io.status.prv
++  io.rocc.commitLog.bits.interrupt_replay := intr_replay
++  /* PHMon: end */
++
+   // evaluate performance counters
+   val icache_blocked = !(io.imem.resp.valid || RegNext(io.imem.resp.valid))
+   csr.io.counters foreach { c => c.inc := RegNext(perfEvents.evaluate(c.eventSel)) }
+diff --git a/src/main/scala/rocket/SimpleHellaCacheIF.scala b/src/main/scala/rocket/SimpleHellaCacheIF.scala
+index 1ee13e6..ef80e2b 100644
+--- a/src/main/scala/rocket/SimpleHellaCacheIF.scala
++++ b/src/main/scala/rocket/SimpleHellaCacheIF.scala
+@@ -126,11 +126,15 @@ class SimpleHellaCacheIF(implicit p: Parameters) extends Module
+   io.cache.s1_kill := io.cache.s2_nack
+   io.cache.s1_data.data := RegEnable(req_arb.io.out.bits.data, s0_req_fire)
+ 
+-  replayq.io.nack.valid := (io.cache.s2_nack || s2_kill) && s2_req_fire
++  /* PHMon: begin */
++  replayq.io.nack.valid := ((io.cache.s2_nack || s2_kill) && s2_req_fire) || (io.requestor.req.bits.valid_req)
++  /* PHMon: end */
+   replayq.io.nack.bits := s2_req_tag
+   replayq.io.resp := io.cache.resp
+   io.requestor.resp := io.cache.resp
+ 
+-  assert(!RegNext(RegNext(io.cache.req.fire())) || !io.cache.s2_xcpt.asUInt.orR,
+-         "SimpleHellaCacheIF exception")
++  /* PHMon: begin */
++  io.requestor.assertion := RegNext(RegNext(io.cache.req.fire())) && io.cache.s2_xcpt.asUInt.orR && !io.cache.resp.bits.s2_xcpt_else
++  io.requestor.s2_xcpt := io.cache.s2_xcpt
++  /* PHMon: end */
+ }
+diff --git a/src/main/scala/tile/LazyRoCC.scala b/src/main/scala/tile/LazyRoCC.scala
+index 512f736..b56f243 100644
+--- a/src/main/scala/tile/LazyRoCC.scala
++++ b/src/main/scala/tile/LazyRoCC.scala
+@@ -52,6 +52,9 @@ class RoCCCoreIO(implicit p: Parameters) extends CoreBundle()(p) {
+   val busy = Bool(OUTPUT)
+   val interrupt = Bool(OUTPUT)
+   val exception = Bool(INPUT)
++  /* PHMon: begin */
++  val commitLog = Decoupled(new CommitLog).flip
++  /* PHMon: end */
+ }
+ 
+ /** Base classes for Diplomatic TL2 RoCC units **/
+@@ -109,6 +112,9 @@ trait HasLazyRoCCModule[+L <: BaseTile with HasLazyRoCC] extends CanHavePTWModul
+       ptwPorts ++= rocc.module.io.ptw
+       rocc.module.io.cmd <> cmdRouter.io.out(i)
+       rocc.module.io.exception := roccCore.exception
++      /* PHMon: begin */
++      rocc.module.io.commitLog <> roccCore.commitLog
++      /* PHMon: end */
+       val dcIF = Module(new SimpleHellaCacheIF()(outer.p))
+       dcIF.io.requestor <> rocc.module.io.mem
+       dcachePorts += dcIF.io.cache
+diff --git a/src/main/scala/tile/RocketTile.scala b/src/main/scala/tile/RocketTile.scala
+index e4ace50..7ad7140 100644
+--- a/src/main/scala/tile/RocketTile.scala
++++ b/src/main/scala/tile/RocketTile.scala
+@@ -127,6 +127,9 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
+   core.io.rocc.resp <> roccCore.resp
+   core.io.rocc.busy := roccCore.busy
+   core.io.rocc.interrupt := roccCore.interrupt
++  /* PHMon: begin */
++  roccCore.commitLog <> core.io.rocc.commitLog
++  /* PHMon: end */
+ 
+   // Rocket has higher priority to DTIM than other TileLink clients
+   outer.dtim_adapter.foreach { lm => dcachePorts += lm.module.io.dmem }

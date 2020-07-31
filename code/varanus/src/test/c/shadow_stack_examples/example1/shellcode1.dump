@@ -1,0 +1,18 @@
+
+shellcode:     file format elf64-littleriscv
+
+
+Disassembly of section .text:
+
+0000000000011078 <_start>:
+   11078:	000147b7          	lui	a5,0x14
+   1107c:	a3878513          	addi	a0,a5,-1480 # 13a38 <_end+0x1990>
+   11080:	00014737          	lui	a4,0x14
+   11084:	83070713          	addi	a4,a4,-2000 # 13830 <_end+0x1788>
+   11088:	83070713          	addi	a4,a4,-2000
+   1108c:	83070713          	addi	a4,a4,-2000
+   11090:	83070713          	addi	a4,a4,-2000
+   11094:	83070713          	addi	a4,a4,-2000
+   11098:	83070713          	addi	a4,a4,-2000
+   1109c:	c7c70713          	addi	a4,a4,-900
+   110a0:	00070067          	jr	a4

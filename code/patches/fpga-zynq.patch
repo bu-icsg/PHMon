@@ -1,0 +1,33 @@
+diff --git a/.gitmodules b/.gitmodules
+index 62dec5a..d2b8e46 100644
+--- a/.gitmodules
++++ b/.gitmodules
+@@ -4,6 +4,14 @@
+ [submodule "zybo/fpga-images-zybo"]
+ 	path = zybo/fpga-images-zybo
+ 	url = https://github.com/ucb-bar/fpga-images-zybo.git
++[submodule "common/u-boot-xlnx"]
++	path = common/u-boot-xlnx
++	url = https://github.com/Xilinx/u-boot-xlnx.git
++	branch = master-next
++[submodule "common/linux-xlnx"]
++	path = common/linux-xlnx
++	url = https://github.com/Xilinx/linux-xlnx.git
++	branch = master-next
+ [submodule "zc706/fpga-images-zc706"]
+ 	path = zc706/fpga-images-zc706
+ 	url = https://github.com/ucb-bar/fpga-images-zc706.git
+diff --git a/common/linux-xlnx b/common/linux-xlnx
+new file mode 160000
+index 0000000..6fd59fe
+--- /dev/null
++++ b/common/linux-xlnx
+@@ -0,0 +1 @@
++Subproject commit 6fd59febbff1f1a94170d77f6149526286d9bef2
+diff --git a/common/u-boot-xlnx b/common/u-boot-xlnx
+new file mode 160000
+index 0000000..f634657
+--- /dev/null
++++ b/common/u-boot-xlnx
+@@ -0,0 +1 @@
++Subproject commit f63465733427b7bfbd0fe9c6d8ba3fb90189ad69

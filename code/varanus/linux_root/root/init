@@ -1,0 +1,9 @@
+#!/bin/busybox ash
+
+echo "HI"
+# Do your stuff here.
+/bin/busybox mount -t proc proc /proc
+/bin/busybox mount -t devtmpfs devtmpfs /dev
+#boots up and runs executable and poweroffs!
+/bin/busybox ash
+echo "Bye"

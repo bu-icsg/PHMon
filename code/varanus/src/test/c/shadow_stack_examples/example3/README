@@ -1,0 +1,17 @@
+vuln2 is the static binary, there is no need to recompile.
+The only change will be made in payload3.py
+First disable ASLR
+echo 0 > /proc/sys/kernel/randomize_va_space
+run ./vuln3
+It will return 3 addresses, the important one buffer, the others should be same
+
+if you get buffer=0x3ffffffb88, the payload will work fine
+Otherwise, record buffer address
+
+go to payload3.py
+find return to a injected code address comment
+change that address with buffer addr+4
+./paylaod3.py > payload3.txt
+
+cat payload3.txt | ./vuln3
+This should print hacked

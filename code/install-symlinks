@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+VARANUS_DIR=`pwd`/varanus
+
+if [ $# -eq 1 ]; then
+    ROCKETCHIP_DIR=$1
+else
+    ROCKETCHIP_DIR=$VARANUS_DIR/../fpga-zynq/rocket-chip
+fi
+
+echo $ROCKETCHIP_DIR
+
+(cd $ROCKETCHIP_DIR/src/main/scala/rocket && \
+        ln -sf $VARANUS_DIR/config/VaranusConfigs.scala && \
+        cd $ROCKETCHIP_DIR &&
+        if [ ! -d varanus ]; then \
+            ln -sf $VARANUS_DIR; \
+        fi
+)
+
+(cd $ROCKETCHIP_DIR/../common/src/main/scala && \
+        if [ ! -d varanus ]; then \
+            ln -sf $VARANUS_DIR; \
+        fi
+)
