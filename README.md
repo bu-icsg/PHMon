@@ -4,23 +4,32 @@ In this document, we provide a guideline for running the use cases of our Progra
 Monitor (PHMon) [1]. We run our experiments on the Xilinx Zynq Zedboard FPGA and use a modified Linux
 kernel 4.15 to provide the support for our hardware.
 
-Please refer to the code branch of this repository to find our source code and patches.
+This README contains 2 sets of instructions:
 
-## The experiment environment
+1. Quick instructions: This is a quick way to leverage our available binaries in the evaluation folder
+to test our various use cases on an FPGA.
+1. Building everything from scratch: In this guideline, we provide instructions to build all the required
+tools, apply our patches, generate the bitstream, and finally run our use cases on an FPGA.
+
+## 1) Quick instructions
+Please refert to the evaluation folder for the files required to follow the quick instructions.
+### The experiment environment
 In the rest of this document, we assume you have access to a Zedboard FPGA.
+If you plan to use a different FPGA board, please file an issue so we can add the support for your
+target board.
 We suggest you to use screen for connecting to your FPGA board, rather than ssh, e.g.:
 
 ```
   $ screen -S ACM0 /dev/ttyACM0 115200
 ```
 
-Please make sure to use 115200 as the baud rate in the screen command. After connecting to ACM0
-FPGA, you have access to the Processing System (PS) side of your zedboard. We provide the required
-files to configure the Programmable Logic (PL) side of the zedboard with a baseline Rocketchip
-processor and to boot up the Linux kernel.
+Please make sure to use 115200 as the baud rate in the screen command.
+After connecting to ACM0 FPGA, you have access to the Processing System (PS) side of your zedboard.
+We provide the required files to configure the Programmable Logic (PL) side of the zedboard with a
+baseline Rocketchip processor and to boot up the Linux kernel.
 
-You can find the necessary files and scripts to configure the FPGA, boot up the Linux kernel,
-and run the baseline and PHMon experiments in the baseline and PHMon folders, respectively.
+You can find the necessary files and scripts to configure the FPGA, boot up the Linux kernel, and run the
+baseline and PHMon experiments in the baseline and PHMon subfolders of the evaluation folder, respectively.
 
 We suggest you to detatch (ctrl a + d) from the screen session when you do not run the experiments
 (specially for the AFL use case). To reattach to the screen session use the following command:
@@ -30,22 +39,23 @@ We suggest you to detatch (ctrl a + d) from the screen session when you do not r
 ```
 
 For each use case, we provide a script to boot up Linux. Because of our FPGA limitations, it takes
-about 2 minutes for the Linux to boot up (please be patient). After you are done with one set of
-experiments, the easiest way to exit the Linux environment is just by terminating the process
-using ctrl+c.
+about 2 minutes for the Linux to boot up (please be patient).
+After you are done with one set of experiments, the easiest way to exit the Linux environment is just
+by terminating the process using ctrl+c.
 
-## Running the experiments
+### Running the experiments
 For running the experiments, you need to make sure that you have the rocketchip_wrapper.bit.bin, fesvr-zynq,
 and the bbl as well as the script for the target use case (e.g., bbl_afl and afl.sh) on the PS side of the 
 zedboard.
 
 
-### Shadow Stack
-For the shadow stack use case, we provide a benign benchmark (mcf from SPEC2006 benchmark suite)
-and two programs vulnerable to buffer overflow attacks. Our vulnerable programs use the strcpy
-function and we choose the input to the program in a way to exploit this vulnerability.
+#### Shadow Stack
+For the shadow stack use case, we provide a benign benchmark and two programs vulnerable to buffer overflow
+attacks.
+Our vulnerable programs use the strcpy function and we choose the input to the program in a way to exploit
+this vulnerability.
 
-#### Shadow Stack: Baseline
+##### Shadow Stack: Baseline
 To run our baseline experiment for the shadow stack use case, first run the shadow stack script
 (shadow_stack.sh) on ACM0:
 
@@ -66,7 +76,7 @@ the second vulnerable program:
   $ ./run_vuln2.sh
 ```
 
-To run the mcf benign benchmark with test input, execute the run_mcf.sh script:
+To run the benign benchmark with test input, execute the run_mcf.sh script:
 
 ```
   $ ./run_mcf.sh
@@ -77,7 +87,7 @@ process. However, these values are not in wall clock time. To get the time in se
 multiply the printed time with a constant factor of 4.0146. To get the execution, just calculate
 the time difference between t1 and t0.
       
-#### Shadow Stack: PHMon
+##### Shadow Stack: PHMon
 To run the shadow stack use case on PHMon, first run the shadow stack script (shadow_stack.sh) on
 ACM1:
 
@@ -102,12 +112,12 @@ not malicious, PHMon does not detect any call/ret violation. You can simply test
 for other applications such as ls and cat. To calculate the execution time of each program, just
 subtract the time reported in t0 from the time reported in t1.
 
-### AFL
+#### AFL
 For the hardware-accelerated fuzzing use case, we use PHMon to implement the instrumentation suite
 of the AFL. To demonstrate the AFL acceleration, we use one of the vulnerable programs evaluated
 in the paper, i.e., nasm.
 
-#### AFL: Baseline
+##### AFL: Baseline
 For the baseline experiment, we integrated AFL into the user mode QEMU version 2.7.5. To run the
 baseline QEMU-based AFL, first run the afl script (afl.sh) on ACM0:
 
@@ -151,7 +161,7 @@ To run the fork server version, execute the run_afl_fork_server.sh script:
 During the fork server execution, you will notice that the performance has improved. This time AFL
 will find the unique crashes faster.
 
-#### AFL: PHMon
+##### AFL: PHMon
 To run the PHMon-based afl use case, first run the afl script (afl.sh) on ACM1:
 
 ```
@@ -171,12 +181,12 @@ will find the unique crashes much faster compared to the baseline (in about a mi
 the baseline case, you can terminate the afl-fuzz process and test the found crashes in the
 home/findings/crashes folder.
 
-### Accelerated Debugging
+#### Accelerated Debugging
 For the accelerated debugging use case, we have a simple program (dump.c) consisting of a for loop
 (from 0 to 10000), where the for loop just prints the value of the loop index (i). Our goal is to
 have a conditional breakpoint over i (e.g., when i = 1000).
 
-####Debugging: Baseline
+##### Debugging: Baseline
 To run the baseline of our debugging use case, first run the debug script on ACM0:
 
 ```
@@ -194,7 +204,7 @@ runs the dump.rv inside GDB. After the execution reaches the breakpoint, you can
 execution. To measure the execution time, subtract t0 from t1. Note that to get the real time in
 seconds you need to multiply the calculated time by a factor of 4.0146.
   
-#### Accelerated Debugging: PHMon
+##### Accelerated Debugging: PHMon
 We use PHMon to accelerate the debugging of our conditional breakpoint. To run the accelerated
 debugging with PHMon support, first run the debug script (debug.sh) on ACM1:
 
@@ -259,11 +269,78 @@ can configure PHMon with a different threshold:
   $ quit
 ```
 
-### Detecting Information Leakage
+#### Detecting Information Leakage
 Due to the complications for testing the information leakage detection use case, we have not
-included this use case in our artifact evaluation.
+included this use case in the repository.
+If you are interested in this use case, please contact us.
 
-## Reference
+## 2) Building everything from scratch
+In this part of the guideline, we provide the instructions for building everything from scratch.
+In this guideline, we assume that you do not have an available version of the RISC-V gnu toolchain.
+In case you have the RISC-V toolchain, you can comment the commands for installing the toolchain in
+the install.sh script.
+
+### Overview
+The code folder contains the required files for building everything from scratch.
+Inside the code folder, we have the required scripts for building everything and running PHMon on
+an emulator as well as Linux kernel on the Zedboard FPGA.
+Additionally, you can find our hardware source code in the varanus folder and all of our patches in the 
+patches folder.
+
+### Building the tools
+In this project, we use a stable version of the Rocket core.
+Currently, we use the version in FPGA-zynq [repository](https://github.com/ucb-bar/fpga-zynq)
+(and yes we know that FPGA-zynq repository has been deprecated).
+
+In this project, we rely on the RISC-V GNU toolchain [repository](https://github.com/riscv/riscv-gnu-toolchain).
+Installing this toolchain, requires severak standard packages.
+First, use the following command to ensure you have all the required packages:
+```
+sudo apt-get install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+```
+
+To install all the reuqired tools and apply the patches, follow these commands:
+
+```
+$ cd code
+$ ./install.sh
+```
+Please note that this step is very time consuming, it installs the full RISC-V toolchain and builds the
+RISC-V Linux kernel.
+After this step, you should have all the requirements for running PHMon.
+
+### Running on Emulator using pk
+In this step, we rely on the Rocket Chip Emulator to run a program on the Rocket core interfaced with PHMon
+using the proxy kernel (pk).
+You should pass the program RISC-V binary as an argument to the run_emulator.sh script:
+```
+cd code
+$ ./run_emulator.sh varanus/build/komodo_test.rv
+```
+
+### Running on an FPGA using Linux kernel
+We assume that you will use our provided bitstream for the zedboard FPGA containing the Rocket core interfaced
+with PHMon.
+You can find this bitsream in evaluation/PHMon/rocketchip_wrapper.bit.bin, scp it to the zedboard and reconfigure
+the FPGA:
+```
+$ cat rocketchip_wrapper.bit.bin > /dev/xdevcfg 
+```
+
+To run a program on the FPGA, we provide the run_linux.sh script:
+```
+$ ./run_linux.sh
+```
+
+If you are interested in modifying the PHMon code or configuration and building the bitstream from scratch,
+You can use the fpga.sh script:
+```
+$ ./fpga.sh
+```
+This requires a Xilinx license; please note that we synthesize our desing using Vivado 2016.2.
+
+
+### Reference
 [1] Leila Delshadtehrani, Sadullah Canakci, Boyou Zhou, Schuyler Eldridge, Ajay Joshi, and Manuel
   Egele. "PHMon: A Programmable Hardware Monitor and Its Security Use Cases", USENIX
   Security, 2020. [online] https://www.usenix.org/system/files/sec20spring_delshadtehrani_prepub.pdf
