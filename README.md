@@ -11,9 +11,26 @@ to test our various use cases on an FPGA.
 1. Building everything from scratch: In this guideline, we provide instructions to build all the required
 tools, apply our patches, generate the bitstream, and finally run our use cases on an FPGA.
 
-## 1) Quick instructions
+## <a name="toc"></a> Table of Contents
+- [1) Quick instructions](#quick)
+  - [The experiment environment](#env)
+  - [Running the experiments](#exp)
+    - [Shadow Stack](#shadowstack)
+    - [AFL](#afl)
+    - [Accelerated Debugging](#debug)
+    - [Detecting Information Leakage](#leakage)
+- [2) Building everything from scratch](#build)
+  - [Overview](#overview)
+  - [Building the tools](#tools)
+  - [Running PHMon on Emulator using pk](#emulator)
+  - [Running PHMon on an FPGA using Linux kernel](#fpga)
+- [Additional Documentation](#additional)
+  - [Publications](#publications)
+  - [Workshop presentations](#workshops)
+
+## <a name="quick"></a> 1) Quick instructions
 Please refert to the evaluation folder for the files required to follow the quick instructions.
-### The experiment environment
+### <a name="env"></a> The experiment environment
 In the rest of this document, we assume you have access to a Zedboard FPGA.
 If you plan to use a different FPGA board, please file an issue so we can add the support for your
 target board.
@@ -43,13 +60,13 @@ about 2 minutes for the Linux to boot up (please be patient).
 After you are done with one set of experiments, the easiest way to exit the Linux environment is just
 by terminating the process using ctrl+c.
 
-### Running the experiments
+###  <a name="exp"></a> Running the experiments
 For running the experiments, you need to make sure that you have the rocketchip_wrapper.bit.bin, fesvr-zynq,
 and the bbl as well as the script for the target use case (e.g., bbl_afl and afl.sh) on the PS side of the 
 zedboard.
 
 
-#### Shadow Stack
+#### <a name="shadowstack"></a> Shadow Stack
 For the shadow stack use case, we provide a benign benchmark and two programs vulnerable to buffer overflow
 attacks.
 Our vulnerable programs use the strcpy function and we choose the input to the program in a way to exploit
@@ -112,7 +129,7 @@ not malicious, PHMon does not detect any call/ret violation. You can simply test
 for other applications such as ls and cat. To calculate the execution time of each program, just
 subtract the time reported in t0 from the time reported in t1.
 
-#### AFL
+#### <a name="afl"></a> AFL
 For the hardware-accelerated fuzzing use case, we use PHMon to implement the instrumentation suite
 of the AFL. To demonstrate the AFL acceleration, we use one of the vulnerable programs evaluated
 in the paper, i.e., nasm.
@@ -181,7 +198,7 @@ will find the unique crashes much faster compared to the baseline (in about a mi
 the baseline case, you can terminate the afl-fuzz process and test the found crashes in the
 home/findings/crashes folder.
 
-#### Accelerated Debugging
+#### <a name="debug"></a> Accelerated Debugging
 For the accelerated debugging use case, we have a simple program (dump.c) consisting of a for loop
 (from 0 to 10000), where the for loop just prints the value of the loop index (i). Our goal is to
 have a conditional breakpoint over i (e.g., when i = 1000).
@@ -269,25 +286,25 @@ can configure PHMon with a different threshold:
   $ quit
 ```
 
-#### Detecting Information Leakage
+#### <a name="leakage"></a> Detecting Information Leakage
 Due to the complications for testing the information leakage detection use case, we have not
 included this use case in the repository.
 If you are interested in this use case, please contact us.
 
-## 2) Building everything from scratch
+## <a name="build"></a> 2) Building everything from scratch
 In this part of the guideline, we provide the instructions for building everything from scratch.
 In this guideline, we assume that you do not have an available version of the RISC-V gnu toolchain.
 In case you have the RISC-V toolchain, you can comment the commands for installing the toolchain in
 the install.sh script.
 
-### Overview
+### <a name="overview"></a> Overview
 The code folder contains the required files for building everything from scratch.
 Inside the code folder, we have the required scripts for building everything and running PHMon on
 an emulator as well as Linux kernel on the Zedboard FPGA.
 Additionally, you can find our hardware source code in the varanus folder and all of our patches in the 
 patches folder.
 
-### Building the tools
+### <a name="tools"></a> Building the tools
 In this project, we use a stable version of the Rocket core.
 Currently, we use the version in FPGA-zynq [repository](https://github.com/ucb-bar/fpga-zynq)
 (and yes we know that FPGA-zynq repository has been deprecated).
@@ -309,7 +326,7 @@ Please note that this step is very time consuming, it installs the full RISC-V t
 RISC-V Linux kernel.
 After this step, you should have all the requirements for running PHMon.
 
-### Running on Emulator using pk
+### <a name="emulator"></a> Running PHMon on Emulator using pk
 In this step, we rely on the Rocket Chip Emulator to run a program on the Rocket core interfaced with PHMon
 using the proxy kernel (pk).
 You should pass the program RISC-V binary as an argument to the run_emulator.sh script:
@@ -318,7 +335,7 @@ cd code
 $ ./run_emulator.sh varanus/build/komodo_test.rv
 ```
 
-### Running on an FPGA using Linux kernel
+### <a name="fpga"></a> Running PHMon on an FPGA using Linux kernel
 We assume that you will use our provided bitstream for the zedboard FPGA containing the Rocket core interfaced
 with PHMon.
 You can find this bitsream in evaluation/PHMon/rocketchip_wrapper.bit.bin, scp it to the zedboard and reconfigure
@@ -339,8 +356,39 @@ $ ./fpga.sh
 ```
 This requires a Xilinx license; please note that we synthesize our desing using Vivado 2016.2.
 
+## <a name="additional"></a> Additional Documentation
+If you use this repository for research, please cite our USENIX Security paper:
+```
+@inproceedings{delshadtehrani2020phmon,
+  title={Phmon: A programmable hardware monitor and its security use cases},
+  author={Delshadtehrani, Leila and Canakci, Sadullah and Zhou, Boyou and Eldridge, Schuyler and Joshi, Ajay and Egele, Manuel},
+  booktitle={29th $\{$USENIX$\}$ Security Symposium ($\{$USENIX$\}$ Security 20)},
+  year={2020}
+}
+```
 
-### Reference
+### <a name="publications"></a> Publications
 [1] Leila Delshadtehrani, Sadullah Canakci, Boyou Zhou, Schuyler Eldridge, Ajay Joshi, and Manuel
-  Egele. "PHMon: A Programmable Hardware Monitor and Its Security Use Cases", USENIX
-  Security, 2020. [online] https://www.usenix.org/system/files/sec20spring_delshadtehrani_prepub.pdf
+  Egele. "PHMon: A Programmable Hardware Monitor and Its Security Use Cases", *USENIX
+  Security*, 2020.
+  * [Paper](https://www.usenix.org/system/files/sec20spring_delshadtehrani_prepub.pdf)
+
+[2] Leila Delshadtehrani, Schuyler Eldridge, Sadullah Canakci, Manuel Egele, and Ajay Joshi. 
+  "Nile: A Programmable Monitoring Coprocessor", *IEEE Computer Architecture Letters (CAL)*, 17(1), 2017.
+  * [Paper](http://people.bu.edu/joshi/files/hw-monitors-cal-2017.pdf)
+
+### <a name="workshops"></a> Workshop presentations
+[3] Leila Delshadtehrani, Sadullah Canakci, Boyou Zhou, Schuyler Eldridge, Ajay Joshi, and Manuel
+  Egele. "A Programmable Hardware Monitor for Security of RISC-V Processors", *Boston Area Architecture
+  Workshop (BARC)*, 2020.
+  * [Paper](http://people.bu.edu/joshi/files/PHMon-barc-2020.pdf)
+
+[4] Leila Delshadtehrani, Sadullah Canakci, Boyou Zhou, Schuyler Eldridge, Ajay Joshi, and Manuel
+  Egele. "A Chisel-Based Programmable Hardware Monitor", *Chisel Community Conference (CCC)*, 2020.
+  * [Presentation](https://youtu.be/IaVtwqW00Uk)
+
+[5]  Leila Delshadtehrani, Jonathan Appavoo, Manuel Egele, Ajay Joshi, and Schuyler Eldridge.
+"Varanus: An Infrastructure for Programmable Hardware Monitoring Units", *Boston Area Architecture
+  Workshop (BARC)*, 2017.
+  * [Paper](https://megele.io/varanus-barc2017.pdf)
+
