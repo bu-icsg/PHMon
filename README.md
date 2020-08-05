@@ -133,11 +133,16 @@ This requires a Xilinx license; please note that we synthesize our desing using 
 ## <a name="additional"></a> Additional Documentation
 If you use this repository for research, please cite our USENIX Security paper:
 ```
-@inproceedings{delshadtehrani2020phmon,
-  title={Phmon: A programmable hardware monitor and its security use cases},
-  author={Delshadtehrani, Leila and Canakci, Sadullah and Zhou, Boyou and Eldridge, Schuyler and Joshi, Ajay and Egele, Manuel},
-  booktitle={29th $\{$USENIX$\}$ Security Symposium ($\{$USENIX$\}$ Security 20)},
-  year={2020}
+@inproceedings {244034,
+author = {Leila Delshadtehrani and Sadullah Canakci and Boyou Zhou and Schuyler Eldridge and Ajay Joshi and Manuel Egele},
+title = {PHMon: A Programmable Hardware Monitor and Its Security Use Cases},
+booktitle = {29th {USENIX} Security Symposium ({USENIX} Security 20)},
+year = {2020},
+isbn = {978-1-939133-17-5},
+pages = {807--824},
+url = {https://www.usenix.org/conference/usenixsecurity20/presentation/delshadtehrani},
+publisher = {{USENIX} Association},
+month = aug,
 }
 ```
 
