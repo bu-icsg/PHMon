@@ -103,10 +103,11 @@ After this step, you should have all the requirements for running PHMon.
 ### <a name="emulator"></a> Running PHMon on Emulator using pk
 In this step, we rely on the Rocket Chip Emulator to run a program on the Rocket core interfaced with PHMon
 using the proxy kernel (pk).
-You should pass the program RISC-V binary as an argument to the run_emulator.sh script:
+You should pass the RISC-V binary program as an argument to the run_emulator.sh script, otherwise komodo_test
+program will be executed by default:
 ```
 cd code
-$ ./run_emulator.sh varanus/build/komodo_test.rv
+$ ./run_emulator.sh <PATH_to_PHMon>/varanus/build/komodo_test.rv
 ```
 
 ### <a name="fpga"></a> Running PHMon on an FPGA using Linux kernel
