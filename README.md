@@ -87,7 +87,7 @@ In this project, we rely on the RISC-V GNU toolchain [repository](https://github
 Installing this toolchain, requires severak standard packages.
 First, use the following command to ensure you have all the required packages:
 ```
-sudo apt-get install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+sudo apt-get install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev device-tree-compiler openjdk-11-jre wget python
 ```
 
 To install all the reuqired tools and apply the patches, follow these commands:
