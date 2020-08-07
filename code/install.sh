@@ -37,7 +37,9 @@ rm -rf riscv-tools
 git clone https://github.com/riscv/riscv-gnu-toolchain.git
 cd riscv-gnu-toolchain
 git submodule update --init --recursive
-./configure --prefix=$RISCV --enable-multilib
+# Use --enable-multilab if you want to have support for both 32-bit and 64-bit
+#./configure --prefix=$RISCV --enable-multilib
+./configure --prefix=$RISCV
 make -j8
 make -j8 linux
 
@@ -69,7 +71,7 @@ cd $PHMon/varanus
 git clone https://github.com/seldridge/rocket-rocc-examples.git
 cd rocket-rocc-examples
 git reset cc86e29b4f7adcc277a5fe6f65fd448a606bbeac
-git submmodule update --init --recursive
+git submodule update --init --recursive
 cp rocc-software/src/xcustom.h $PHMon/fpga-zynq/riscv-linux/include/linux/
 
 cd $PHMon

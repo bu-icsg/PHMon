@@ -5,10 +5,14 @@ export RISCV=`pwd`/fpga-zynq/rocket-chip/tools
 export ROCKETCHIP_DIR=$PHMon/fpga-zynq/rocket-chip
 
 TEST=$1
+if [ -z "$TEST" ]
+then
+    TEST=$PHMon/varanus/build/komodo_test.rv
+fi
 
 echo $TEST
 cd $PHMon/varanus
-make RV_TARGET=/newSSD/leila/Final/PHMon/code/fpga-zynq/rocket-chip/tools/bin/riscv64-unknown-elf
+make -B RV_TARGET=$RISCV/bin/riscv64-unknown-elf
 
 cd $ROCKETCHIP_DIR/emulator
 make CONFIG=KomodoCppConfig ROCKETCHIP_ADDONS=varanus
