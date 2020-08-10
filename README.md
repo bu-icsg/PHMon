@@ -16,6 +16,10 @@ use cases or to program PHMon for new use cases.
 tools, apply our patches, generate the bitstream, and finally run our use cases on an FPGA. You can make
 modifications to our hardware design and build everything from scratch following this guideline.
 
+As a first step, clone this repository:
+```
+git clone https://github.com/bu-icsg/PHMon.git
+```
 ## <a name="toc"></a> Table of Contents
 - [1) Quick instructions](#quick)
 - [2) Using a Docker image](#docker)
@@ -33,7 +37,8 @@ In the rest of this document, we assume you have access to a Zedboard FPGA.
 If you plan to use a different FPGA board, please file an issue so we can add the support for your
 target board.
 The evaluation folder contains the files required for running our use cases.
-We provide a detailed README in this folder about each of the use cases.
+We provide a detailed [README](https://github.com/bu-icsg/PHMon/blob/master/evaluation/README.md)
+in this folder about each of the use cases.
 In summary, you need to scp the bitstream (rocketchip_wrapper.bit.bin), fesvr-zynq, and bbl to your
 FPGA.
 Then, you can reconfigure the FPGA with the bitstream and bootup the Linux kernel.
